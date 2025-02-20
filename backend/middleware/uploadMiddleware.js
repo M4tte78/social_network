@@ -1,22 +1,42 @@
 import multer from 'multer';
 import path from 'path';
+import fs from 'fs';
 
+// ✅ Création du dossier 'uploads/avatars' s'il n'existe pas
+const uploadDir = 'uploads/avatars';
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// ✅ Configuration du stockage
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+        cb(null, uploadDir); // ✅ Tous les avatars vont dans 'uploads/avatars'
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        const uniqueName = Date.now() + '-' + file.originalname;
+        cb(null, uniqueName);
     }
 });
 
+// ✅ Filtrage des fichiers pour n'accepter que les images
 const fileFilter = (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    if (allowedTypes.includes(file.mimetype)) {
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (extname && mimetype) {
         cb(null, true);
     } else {
-        cb(new Error('Format d\'image non supporté'), false);
+        cb(new Error('Erreur: Seules les images JPEG, JPG, PNG et GIF sont autorisées.'));
     }
 };
 
-export const upload = multer({ storage, fileFilter });
+// ✅ Export du middleware 'upload' pour être utilisé dans les routes
+export const upload = multer({ 
+    storage,
+    fileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024  // Limite à 5 Mo par image
+    }
+});

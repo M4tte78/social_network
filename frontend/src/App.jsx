@@ -6,7 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Messages from './pages/Messages';
 import Admin from './pages/Admin';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './hooks/useAuth.jsx'; // ✅ Vérifie bien l'extension
 
 function App() {
     return (

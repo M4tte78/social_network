@@ -101,3 +101,27 @@ export const updateUserRole = async (req, res) => {
     }
 };
 
+// ✅ Mise à jour de l'avatar
+export const updateAvatar = async (req, res) => {
+    const userId = req.params.userId;
+    const avatar = req.file ? req.file.filename : null;
+
+    if (!avatar) {
+        return res.status(400).json({ success: false, message: "Aucun fichier téléchargé." });
+    }
+
+    try {
+        // ✅ Mise à jour de l'avatar dans la base de données
+        await db.query(
+            "UPDATE users SET avatar = ? WHERE id = ?",
+            [avatar, userId]
+        );
+
+        res.status(200).json({ success: true, message: "Avatar mis à jour avec succès", avatar });
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour de l'avatar:", error);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+};
+
+

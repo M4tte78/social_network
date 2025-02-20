@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getAllPosts, getReceivedMessages, deletePost, updatePost } from '../services/api';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth.jsx';
 import { Container, Spinner, ListGroup, Card, Button, Modal, Form } from 'react-bootstrap';
 import { io } from 'socket.io-client';
 import CreatePost from '../components/CreatePost';
@@ -101,6 +101,9 @@ const Home = () => {
     return (
         <Container className="mt-4">
             <h2 className="text-center">🏋️ Fil d'actualité</h2>
+            <br />
+            <h3 className="text-center">📸 Créer une publication</h3>
+
 
             {/* Formulaire de création de publication */}
             <CreatePost />

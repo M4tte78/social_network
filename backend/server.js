@@ -26,6 +26,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/uploads', express.static('uploads')); // ✅ Pour servir les images statiques
 app.use('/api/posts', postRoutes);
+app.use('/uploads/avatars', express.static('uploads/avatars'));
+
 
 io.on('connection', (socket) => {
     console.log(`📡 Un utilisateur connecté : ${socket.id}`);

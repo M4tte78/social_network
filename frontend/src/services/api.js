@@ -39,6 +39,23 @@ export const deletePost = async (postId) => {
     }
 };
 
+// Mettre à jour l'avatar
+export const updateAvatar = async (userId, formData) => {
+    const token = localStorage.getItem('token');
+    const response = await axios.put(
+        `http://localhost:5000/api/users/${userId}/avatar`, 
+        formData, 
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+    return response.data;
+};
+
+
 // Fonction pour récupérer les commentaires d'un post
 export const getCommentsByPost = async (postId) => {
     const response = await axios.get(`${API_URL}/comments/${postId}`);
