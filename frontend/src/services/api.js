@@ -8,15 +8,35 @@ export const addComment = async (postId, userId, content) => {
     return response.data;
 };
 
-// Fonction pour récupérer tous les posts
+// Créer une publication
+export const createPost = async (formData) => {
+    const token = localStorage.getItem('token');
+    await axios.post(`${API_URL}/posts`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+        }
+    });
+};
+
+// Récupérer toutes les publications
 export const getAllPosts = async () => {
     const response = await axios.get(`${API_URL}/posts`);
     return response.data;
 };
 
-// Fonction pour supprimer un post (Admin)
 export const deletePost = async (postId) => {
-    await axios.delete(`${API_URL}/posts/${postId}`);
+    try {
+        const response = await axios.delete(`${API_URL}/posts/${postId}`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Erreur lors de la suppression du post :", error);
+        throw error;
+    }
 };
 
 // Fonction pour récupérer les commentaires d'un post
@@ -25,6 +45,38 @@ export const getCommentsByPost = async (postId) => {
     return response.data;
 };
 
+
+// Supprimer un utilisateur (Admin)
+export const deleteUser = async (id) => {
+    const token = localStorage.getItem('token');
+    await axios.delete(`${API_URL}/users/${id}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    });
+};
+
+// Modifier le rôle d'un utilisateur (Admin)
+export const updateUserRole = async (id, role) => {
+    const token = localStorage.getItem('token');
+    await axios.put(`${API_URL}/users/${id}`, { role }, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    });
+};
+
+
+// Modifier une publication (Admin)
+export const updatePost = async (id, formData) => {
+    const token = localStorage.getItem('token');
+    await axios.put(`${API_URL}/posts/${id}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+        }
+    });
+};
 
 // Fonction pour liker/déliker un post
 export const toggleLike = async (postId, userId) => {
@@ -50,10 +102,6 @@ export const getAllUsers = async () => {
     return response.data;
 };
 
-// Suppression d'un utilisateur (pour Admin)
-export const deleteUser = async (userId) => {
-    await axios.delete(`${API_URL}/users/${userId}`);
-};
 
 // Récupération des messages
 export const getMessages = async (sender_id, receiver_id) => {

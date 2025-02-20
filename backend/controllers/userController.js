@@ -64,3 +64,40 @@ export const getAllUsers = async (req, res) => {
     }
 };
 
+// Supprimer un utilisateur (Admin)
+export const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Vérifie si l'utilisateur est admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Accès refusé." });
+        }
+
+        await db.execute("DELETE FROM users WHERE id = ?", [id]);
+        res.status(200).json({ message: 'Utilisateur supprimé avec succès' });
+    } catch (error) {
+        console.error("❌ Erreur lors de la suppression de l'utilisateur :", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+// Modifier le rôle d'un utilisateur (Admin)
+export const updateUserRole = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role } = req.body;
+
+        // Vérifie si l'utilisateur est admin
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: "Accès refusé." });
+        }
+
+        await db.execute("UPDATE users SET role = ? WHERE id = ?", [role, id]);
+        res.status(200).json({ message: 'Rôle mis à jour avec succès' });
+    } catch (error) {
+        console.error("❌ Erreur lors de la mise à jour du rôle :", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+

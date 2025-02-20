@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
+import { db } from '../config/db.js';
 
-export const protect = (req, res, next) => {
+// Middleware pour protéger les routes (vérification du token JWT)
+export const protect = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1]; // Récupère le token après "Bearer"
 
     if (!token) {
@@ -9,7 +11,14 @@ export const protect = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded; // Stocke l'utilisateur dans `req.user`
+        
+        // Récupère l'utilisateur et son rôle
+        const [rows] = await db.execute(
+            "SELECT id, username, role FROM users WHERE id = ?",
+            [decoded.id]
+        );
+        req.user = rows[0];
+        
         next();
     } catch (error) {
         return res.status(401).json({ message: "Token invalide." });

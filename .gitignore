@@ -58,3 +58,7 @@ backend/.cache/
 
 # Socket.io
 backend/socket.io/
+
+# Ignorer le dossier des images uploadées
+uploads/
+

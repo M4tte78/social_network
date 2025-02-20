@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import userRoutes from './routes/userRoutes.js';
+import postRoutes from './routes/postRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import { db } from './config/db.js';
 
@@ -23,6 +24,8 @@ app.use(express.json());
 
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/uploads', express.static('uploads')); // ✅ Pour servir les images statiques
+app.use('/api/posts', postRoutes);
 
 io.on('connection', (socket) => {
     console.log(`📡 Un utilisateur connecté : ${socket.id}`);
