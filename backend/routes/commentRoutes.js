@@ -1,10 +1,10 @@
 import express from 'express';
 import { addComment, getCommentsByPost } from '../controllers/commentController.js';
-import { authMiddleware } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/add', authMiddleware, addComment);
-router.get('/:post_id', authMiddleware, getCommentsByPost);
+router.post('/add', protect, addComment);
+router.get('/:post_id', protect, getCommentsByPost);
 
 export default router;

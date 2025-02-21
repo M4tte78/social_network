@@ -57,8 +57,8 @@ export const updateAvatar = async (userId, formData) => {
 
 
 // Fonction pour récupérer les commentaires d'un post
-export const getCommentsByPost = async (postId) => {
-    const response = await axios.get(`${API_URL}/comments/${postId}`);
+export const getCommentsByPost = async (post_id) => {
+    const response = await axios.get(`http://localhost:5000/api/comments/${post_id}`);
     return response.data;
 };
 
@@ -96,8 +96,8 @@ export const updatePost = async (id, formData) => {
 };
 
 // Fonction pour liker/déliker un post
-export const toggleLike = async (postId, userId) => {
-    const response = await axios.post(`${API_URL}/likes/toggle`, { post_id: postId, user_id: userId });
+export const toggleLike = async (user_id, post_id) => {
+    const response = await axios.post('http://localhost:5000/api/likes/toggle', { user_id, post_id });
     return response.data;
 };
 
@@ -142,5 +142,8 @@ export const getReceivedMessages = async (receiver_id) => {
     return response.data;
 };
 
-
+export const getLikes = async (post_id) => {
+    const response = await axios.get(`http://localhost:5000/api/likes/${post_id}`);
+    return response.data.count;
+};
 
