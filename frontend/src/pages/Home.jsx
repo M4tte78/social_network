@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { getAllPosts, getReceivedMessages, deletePost, updatePost } from '../services/api';
+import { getAllPosts, getReceivedMessages, deletePost } from '../services/api';
 import { useAuth } from '../hooks/useAuth.jsx';
-import { Container, Spinner, ListGroup, Card, Button, Modal, Form } from 'react-bootstrap';
+import { Container, Spinner, ListGroup, Card, Button, Modal } from 'react-bootstrap';
 import { io } from 'socket.io-client';
 import CreatePost from '../components/CreatePost';
 
@@ -12,15 +12,14 @@ const Home = () => {
     const [posts, setPosts] = useState([]);
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [currentPost, setCurrentPost] = useState({});
+    const [showModal, setShowModal] = useState(false);
+    const [selectedPostId, setSelectedPostId] = useState(null);
 
-    // Charger les posts et les messages reçus
     useEffect(() => {
         if (user) {
             fetchPosts();
             fetchMessages();
-
+            
             socket.on('receiveMessage', (newMessage) => {
                 if (newMessage.receiver_id === user.id) {
                     setMessages((prevMessages) => [newMessage, ...prevMessages]);
@@ -33,7 +32,6 @@ const Home = () => {
         }
     }, [user]);
 
-    // Récupérer les publications
     const fetchPosts = async () => {
         try {
             const data = await getAllPosts();
@@ -43,7 +41,6 @@ const Home = () => {
         }
     };
 
-    // Récupérer les messages reçus
     const fetchMessages = async () => {
         try {
             const data = await getReceivedMessages(user.id);
@@ -55,58 +52,34 @@ const Home = () => {
         }
     };
 
-    // Supprimer une publication
     const handleDelete = async (postId) => {
-        if (window.confirm("Voulez-vous vraiment supprimer cette publication ?")) {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette publication ?")) {
             try {
                 await deletePost(postId);
                 setPosts(posts.filter(post => post.id !== postId));
+                console.log("Publication supprimée :", postId);
             } catch (error) {
-                console.error("Erreur lors de la suppression de la publication :", error);
+                console.error("Erreur lors de la suppression du post", error);
             }
         }
     };
 
-    // Ouvrir le modal de modification
-    const handleEdit = (post) => {
-        setCurrentPost(post);
-        setShowEditModal(true);
+    const handleEdit = (postId) => {
+        setSelectedPostId(postId);
+        setShowModal(true);
     };
 
-    // Fermer le modal de modification
     const handleCloseModal = () => {
-        setShowEditModal(false);
-        setCurrentPost({});
-    };
-
-    // Modifier une publication
-    const handleUpdate = async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData();
-        formData.append('content', currentPost.content);
-        if (e.target.image.files[0]) {
-            formData.append('image', e.target.image.files[0]);
-        }
-
-        try {
-            await updatePost(currentPost.id, formData);
-            setShowEditModal(false);
-            fetchPosts();
-        } catch (error) {
-            console.error("Erreur lors de la modification de la publication :", error);
-        }
+        setShowModal(false);
+        setSelectedPostId(null);
     };
 
     return (
         <Container className="mt-4">
             <h2 className="text-center">🏋️ Fil d'actualité</h2>
-            <br />
-            <h3 className="text-center">📸 Créer une publication</h3>
 
-
-            {/* Formulaire de création de publication */}
-            <CreatePost />
+            {/* Formulaire de publication */}
+            <CreatePost onPostCreated={fetchPosts} />
 
             {/* Messages Reçus */}
             <h3 className="mt-4">📩 Messages Privés</h3>
@@ -140,54 +113,61 @@ const Home = () => {
                                     objectFit: 'cover' 
                                 }} 
                             />
-                        <Card.Body>
-                            <Card.Title>{post.username}</Card.Title>
-                            <Card.Text>{post.content}</Card.Text>
-                            <small className="text-muted">Publié le : {new Date(post.created_at).toLocaleDateString()}</small>
+                            <Card.Body>
+                                <Card.Title className="text-primary">
+                                    {post.user?.username || "Utilisateur inconnu"}
+                                </Card.Title>
+                                <Card.Text>{post.content}</Card.Text>
 
-                            {/* Boutons Admin */}
-                            {user.role === 'admin' && (
-                                <div className="mt-3">
-                                    <Button variant="danger" onClick={() => handleDelete(post.id)} className="me-2">Supprimer</Button>
-                                    <Button variant="warning" onClick={() => handleEdit(post)}>Modifier</Button>
-                                </div>
-                            )}
-                        </Card.Body>
-                    </Card>
-                ))
-            ) : (
-                <p className="text-muted text-center">Aucune publication disponible.</p>
-            )}
+                                <Button variant="outline-primary" size="sm" className="me-2">J'aime</Button>
+                                <Button variant="outline-secondary" size="sm">Commenter</Button>
 
-            {/* Modal de Modification */}
-            <Modal show={showEditModal} onHide={handleCloseModal}>
+                                {/* Affichage conditionnel des boutons Modifier et Supprimer pour les admins */}
+                                {user?.role === "admin" && (
+                                    <>
+                                        <Button 
+                                            variant="warning" 
+                                            size="sm" 
+                                            className="me-2 mt-2"
+                                            onClick={() => handleEdit(post.id)}
+                                        >
+                                            Modifier
+                                        </Button>
+                                        <Button 
+                                            variant="danger" 
+                                            size="sm" 
+                                            className="mt-2"
+                                            onClick={() => handleDelete(post.id)}
+                                        >
+                                            Supprimer
+                                        </Button>
+                                    </>
+                                )}
+                            </Card.Body>
+                        </Card>
+                    ))
+                ) : (
+                    <p className="text-muted text-center">Aucune publication disponible.</p>
+                )}
+            </div>
+
+            {/* Modal de modification */}
+            <Modal show={showModal} onHide={handleCloseModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>Modifier la publication</Modal.Title>
                 </Modal.Header>
-                <Form onSubmit={handleUpdate}>
-                    <Modal.Body>
-                        <Form.Group controlId="content">
-                            <Form.Label>Description</Form.Label>
-                            <Form.Control 
-                                as="textarea" 
-                                value={currentPost.content} 
-                                onChange={(e) => setCurrentPost({...currentPost, content: e.target.value})} 
-                                required 
-                            />
-                        </Form.Group>
-                        <Form.Group controlId="image" className="mt-3">
-                            <Form.Label>Changer l'image (optionnel)</Form.Label>
-                            <Form.Control type="file" accept="image/*" />
-                        </Form.Group>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={handleCloseModal}>Annuler</Button>
-                        <Button type="submit" variant="primary">Enregistrer</Button>
-                    </Modal.Footer>
-                </Form>
-                
+                <Modal.Body>
+                    <p>Formulaire de modification à ajouter ici...</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleCloseModal}>
+                        Annuler
+                    </Button>
+                    <Button variant="primary">
+                        Enregistrer
+                    </Button>
+                </Modal.Footer>
             </Modal>
-            </div>
         </Container>
     );
 };

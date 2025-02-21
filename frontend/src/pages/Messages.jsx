@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth.jsx';
 import { getMessages } from '../services/api';
 import { Container, Form, Button, ListGroup } from 'react-bootstrap';
 import { io } from 'socket.io-client';

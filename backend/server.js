@@ -24,8 +24,8 @@ app.use(express.json());
 
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
-app.use('/uploads', express.static('uploads')); // ✅ Pour servir les images statiques
 app.use('/api/posts', postRoutes);
+app.use('/uploads', express.static('uploads')); // ✅ Pour servir les images statiques
 app.use('/uploads/avatars', express.static('uploads/avatars'));
 
 

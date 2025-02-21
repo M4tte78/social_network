@@ -1,9 +1,16 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.jsx';
+import { useAuth } from '../hooks/useAuth';
+import useRedirect from '../hooks/useRedirect';
 import { Navbar, Nav, Container, Button } from 'react-bootstrap';
 
 const NavigationBar = () => {
     const { user, logout } = useAuth();
+    const redirect = useRedirect(); // ✅ Utilisation de useRedirect
+
+    const handleLogout = () => {
+        logout();
+        redirect('/login'); // ✅ Redirection après déconnexion
+    };
 
     return (
         <Navbar bg="dark" variant="dark" expand="lg">
@@ -16,10 +23,11 @@ const NavigationBar = () => {
                             <>
                                 <Nav.Link as={Link} to="/profile">Profil</Nav.Link>
                                 <Nav.Link as={Link} to="/messages">Messages</Nav.Link>
-                                {user.role === "admin" && (
+                                {user?.role?.toLowerCase() === "admin" && (
                                     <Nav.Link as={Link} to="/admin" className="text-warning">Admin</Nav.Link>
                                 )}
-                                <Button variant="outline-danger" onClick={logout}>Déconnexion</Button>
+
+                                <Button variant="outline-danger" onClick={handleLogout}>Déconnexion</Button>
                             </>
                         ) : (
                             <>

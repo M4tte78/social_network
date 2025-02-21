@@ -6,7 +6,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Messages from './pages/Messages';
 import Admin from './pages/Admin';
-import { AuthProvider } from './hooks/useAuth.jsx'; // ✅ Vérifie bien l'extension
+import { AuthProvider } from './hooks/useAuth';
+import ProtectedRoute from './components/ProtectedRoute'; // ✅ Vérifiez le chemin
 
 function App() {
     return (
@@ -15,11 +16,32 @@ function App() {
                 <Navbar />
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/profile" element={<Profile />} />
+                    <Route 
+                        path="/profile" 
+                        element={
+                            <ProtectedRoute>
+                                <Profile />
+                            </ProtectedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/messages" 
+                        element={
+                            <ProtectedRoute>
+                                <Messages />
+                            </ProtectedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/admin" 
+                        element={
+                            <ProtectedRoute adminOnly={true}>
+                                <Admin />
+                            </ProtectedRoute>
+                        } 
+                    />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
-                    <Route path="/messages" element={<Messages />} />
-                    <Route path="/admin" element={<Admin />} />
                 </Routes>
             </Router>
         </AuthProvider>

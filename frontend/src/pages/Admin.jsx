@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAllUsers, deleteUser, updateUserRole } from '../services/api';
 import { Table, Button, Container, Spinner, Modal, Form } from 'react-bootstrap';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth.jsx';
 import { useNavigate } from 'react-router-dom';
 
 const Admin = () => {

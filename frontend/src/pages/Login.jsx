@@ -1,37 +1,51 @@
-import { useAuth } from '../hooks/useAuth';
 import { useState } from 'react';
-import { Container, Form, Button, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import axios from 'axios';
 
 const Login = () => {
     const { login } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState(null);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
 
-    const handleLogin = async () => {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         try {
-            await login(email, password);
-        } catch (error) {
-            setError("Échec de la connexion. Vérifiez vos informations.");
+            const response = await axios.post('http://localhost:5000/api/users/login', {
+                email,
+                password
+            });
+
+            const { user, token } = response.data;
+            login(user, token); // ✅ Passe le user ET le token
+            navigate('/');
+        } catch (err) {
+            setError('Erreur de connexion. Veuillez vérifier vos identifiants.');
         }
     };
 
     return (
-        <Container className="mt-4">
-            <h2 className="text-center">Connexion</h2>
-            {error && <Alert variant="danger">{error}</Alert>}
-            <Form>
-                <Form.Group className="mb-3">
-                    <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" placeholder="Votre email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                </Form.Group>
-                <Form.Group className="mb-3">
-                    <Form.Label>Mot de passe</Form.Label>
-                    <Form.Control type="password" placeholder="Votre mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </Form.Group>
-                <Button variant="primary" onClick={handleLogin} className="w-100">Se connecter</Button>
-            </Form>
-        </Container>
+        <div>
+            <h2>Connexion</h2>
+            <form onSubmit={handleSubmit}>
+                <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
+                <input
+                    type="password"
+                    placeholder="Mot de passe"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                />
+                <button type="submit">Se connecter</button>
+                {error && <p>{error}</p>}
+            </form>
+        </div>
     );
 };
 

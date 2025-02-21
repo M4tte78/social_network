@@ -17,10 +17,25 @@ export const protect = async (req, res, next) => {
             "SELECT id, username, role FROM users WHERE id = ?",
             [decoded.id]
         );
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ message: "Utilisateur non trouvé." });
+        }
+        
         req.user = rows[0];
         
         next();
     } catch (error) {
-        return res.status(401).json({ message: "Token invalide." });
+        console.error("Erreur dans le middleware protect :", error);
+        return res.status(401).json({ message: "Token invalide ou expiré." });
+    }
+};
+
+// Middleware pour vérifier le rôle admin
+export const adminOnly = (req, res, next) => {
+    if (req.user && req.user.role === 'admin') {
+        next();
+    } else {
+        return res.status(403).json({ message: "Accès refusé. Vous n'êtes pas administrateur." });
     }
 };
