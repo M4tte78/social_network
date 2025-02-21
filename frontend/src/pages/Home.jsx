@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth.jsx';
 import { Container, Spinner, ListGroup, Card, Button, Modal } from 'react-bootstrap';
 import { io } from 'socket.io-client';
 import CreatePost from '../components/CreatePost';
+import axios from 'axios';
+
 
 const socket = io("http://localhost:5000");
 
@@ -14,6 +16,9 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState(null);
+    const [updatedContent, setUpdatedContent] = useState('');
+    const [updatedImage, setUpdatedImage] = useState(null);
+
 
     useEffect(() => {
         if (user) {
@@ -64,15 +69,49 @@ const Home = () => {
         }
     };
 
-    const handleEdit = (postId) => {
+    const handleEdit = (postId, currentContent) => {
         setSelectedPostId(postId);
+        setUpdatedContent(currentContent); // Pré-remplit la description actuelle
         setShowModal(true);
     };
+    
 
     const handleCloseModal = () => {
         setShowModal(false);
         setSelectedPostId(null);
     };
+
+    const handleUpdate = async () => {
+        if (!selectedPostId) {
+            console.error("❌ Aucun post sélectionné pour la mise à jour.");
+            return;
+        }
+    
+        const formData = new FormData();
+        formData.append('content', updatedContent);
+        if (updatedImage) {
+            formData.append('image', updatedImage);
+        }
+    
+        try {
+            await axios.put(`http://localhost:5000/api/posts/${selectedPostId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            console.log("✅ Publication mise à jour avec succès !");
+            setShowModal(false);
+            setUpdatedContent('');
+            setUpdatedImage(null);
+            fetchPosts(); // Recharge les posts après modification
+        } catch (error) {
+            console.error("❌ Erreur lors de la mise à jour du post :", error);
+        }
+    };
+    
+    
+    
 
     return (
         <Container className="mt-4">
@@ -107,16 +146,15 @@ const Home = () => {
                         <Card key={post.id} className="m-3" style={{ width: '22rem' }}>
                             <Card.Img 
                                 variant="top" 
-                                src={`http://localhost:5000/uploads/${post.image}`} 
-                                style={{ 
-                                    height: '300px', 
-                                    objectFit: 'cover' 
-                                }} 
+                                src={`http://localhost:5000/uploads/avatars/${post.image}`} 
+                                style={{ height: '500px', objectFit: 'cover' }} 
                             />
+
                             <Card.Body>
-                                <Card.Title className="text-primary">
-                                    {post.user?.username || "Utilisateur inconnu"}
-                                </Card.Title>
+                            <Card.Title className="text-primary">
+                                {post.username || "Utilisateur inconnu"}
+                            </Card.Title>
+
                                 <Card.Text>{post.content}</Card.Text>
 
                                 <Button variant="outline-primary" size="sm" className="me-2">J'aime</Button>
@@ -125,14 +163,15 @@ const Home = () => {
                                 {/* Affichage conditionnel des boutons Modifier et Supprimer pour les admins */}
                                 {user?.role === "admin" && (
                                     <>
-                                        <Button 
+                                       <Button 
                                             variant="warning" 
                                             size="sm" 
                                             className="me-2 mt-2"
-                                            onClick={() => handleEdit(post.id)}
+                                            onClick={() => handleEdit(post.id, post.content)}
                                         >
                                             Modifier
                                         </Button>
+
                                         <Button 
                                             variant="danger" 
                                             size="sm" 
@@ -157,17 +196,39 @@ const Home = () => {
                     <Modal.Title>Modifier la publication</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <p>Formulaire de modification à ajouter ici...</p>
+                    <form>
+                        <div className="mb-3">
+                            <label className="form-label">Description</label>
+                            <textarea
+                                className="form-control"
+                                value={updatedContent}
+                                onChange={(e) => setUpdatedContent(e.target.value)}
+                                placeholder="Modifier la description..."
+                                rows="3"
+                                required
+                            ></textarea>
+                        </div>
+                        <div className="mb-3">
+                            <label className="form-label">Changer l'image</label>
+                            <input
+                                type="file"
+                                className="form-control"
+                                onChange={(e) => setUpdatedImage(e.target.files[0])}
+                                accept="image/*"
+                            />
+                        </div>
+                    </form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCloseModal}>
                         Annuler
                     </Button>
-                    <Button variant="primary">
+                    <Button variant="primary" onClick={handleUpdate}>
                         Enregistrer
                     </Button>
                 </Modal.Footer>
             </Modal>
+
         </Container>
     );
 };

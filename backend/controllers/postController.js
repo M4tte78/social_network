@@ -21,11 +21,14 @@ export const createPost = async (req, res) => {
     }
 };
 
-// Récupérer toutes les publications
+// Récupérer toutes les publications avec le nom de l'utilisateur
 export const getAllPosts = async (req, res) => {
     try {
         const [posts] = await db.execute(
-            "SELECT posts.*, users.username FROM posts INNER JOIN users ON posts.user_id = users.id ORDER BY posts.created_at DESC"
+            `SELECT posts.*, users.username 
+             FROM posts 
+             INNER JOIN users ON posts.user_id = users.id 
+             ORDER BY posts.created_at DESC`
         );
         res.json(posts);
     } catch (error) {
@@ -33,6 +36,7 @@ export const getAllPosts = async (req, res) => {
         res.status(500).json({ message: "Erreur serveur" });
     }
 };
+
 
 // Supprimer une publication (Admin)
 export const deletePost = async (req, res) => {
@@ -64,6 +68,7 @@ export const updatePost = async (req, res) => {
             return res.status(403).json({ message: "Accès refusé." });
         }
 
+        // Mise à jour du contenu et de l'image si présente
         if (image) {
             await db.execute(
                 "UPDATE posts SET content = ?, image = ? WHERE id = ?",
