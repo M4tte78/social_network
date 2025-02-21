@@ -159,6 +159,26 @@ const Home = () => {
         <Container className="mt-4">
             <h2 className="text-center">🏋️ Fil d'actualité</h2>
 
+            
+
+            {/* Messages Reçus */}
+            <h3 className="mt-4">📩 Messages Privés</h3>
+            {loading ? (
+                <div className="text-center">
+                    <Spinner animation="border" variant="primary" />
+                </div>
+            ) : messages.length > 0 ? (
+                <ListGroup className="mb-3">
+                    {messages.map((msg, index) => (
+                        <ListGroup.Item key={index} className="text-start">
+                            <strong>{msg.sender_username || "Utilisateur inconnu"} :</strong> {msg.content}
+                        </ListGroup.Item>
+                    ))}
+                </ListGroup>
+            ) : (
+                <p className="text-muted">Aucun message reçu.</p>
+            )}
+
             <CreatePost onPostCreated={fetchPosts} />
 
             <h3 className="mt-4">📢 Publications</h3>
