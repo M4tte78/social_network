@@ -15,27 +15,44 @@ dotenv.config();
 const app = express();
 const server = createServer(app);
 
+// ✅ Vérification de la connexion au démarrage du serveur
+(async () => {
+    try {
+        const connection = await db.getConnection();
+        console.log('🗄️ Connexion au pool MySQL réussie');
+        connection.release(); // Libère la connexion
+    } catch (err) {
+        console.error('❌ Erreur de connexion à la base de données:', err);
+        process.exit(1);
+    }
+})();
 
+
+// ✅ CORS : Configuration améliorée
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+app.use(cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
+// ✅ Middleware pour parser le JSON
 app.use(express.json());
 
+// ✅ Routes
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/posts', postRoutes);
-app.use('/uploads', express.static('uploads')); // ✅ Pour servir les images statiques
+app.use('/uploads', express.static('uploads'));
 app.use('/uploads/avatars', express.static('uploads/avatars'));
 app.use('/api/likes', likeRoutes);
 app.use('/api/comments', commentRoutes);
 
-
-app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-}));
-
+// ✅ Socket.io
 const io = new Server(server, {
     cors: {
-        origin: ['http://localhost:5173', 'http://localhost:5174'],
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
         credentials: true
     }
@@ -53,6 +70,7 @@ io.on('connection', (socket) => {
     });
 });
 
+// ✅ Lancement du serveur
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
     console.log(`🚀 Serveur démarré sur le port ${PORT}`);
